@@ -1,14 +1,14 @@
 from flask import Flask,render_template,request,session,url_for,redirect,g,session
-import urllib
-from bs4 import BeautifulSoup
 from forms import LoginForm,fetchUrl,WishInfo
-from dbModel import db,Userinfo,Wishlist
+from database import db,Userinfo,Wishlist
+from bs4 import BeautifulSoup
+import urllib
 import time
 
 
 
 app=Flask(__name__)
-app.secret_key="kdsjfiuh&ugiug&&&fkgvi"
+app.secret_key="sdjehisdubgfhnscnghs"
 router={'loggedin':''}
 
 
@@ -23,7 +23,7 @@ def home():
 			db.session.commit()
 			return redirect(url_for('login'))
 		except:
-			unique="Username is already registered with us"
+			unique="Username already registered"
 			db.session.rollback()
 	return render_template('index.html',form=form,unique=unique)
 
@@ -38,15 +38,13 @@ def login():
 	if request.method=='POST' and form.validate():
 		query=db.session.query(Userinfo).filter_by(username=form.username.data).first()
 		if query is None:
-			notUser="Incorrect username/password combination"
+			notUser="Incorrect username/password"
 			found+=1
 		if found==0:
 			session['user']=form.username.data
 			session['user_id']=query.id
 			return redirect(url_for('wishlist'))
 	return render_template('login.html',form=form,notUser=notUser)
-
-
 
 
 
@@ -57,10 +55,6 @@ def wishlist():
 		query={'none':'none'}
 	return render_template("wishlist.html",user=session['user'],query=query)
 
-
-
-
-
 @app.route('/wishlist/add',methods=['GET','POST'])
 def addtowishlist():
 	query=""
@@ -68,9 +62,6 @@ def addtowishlist():
 	href=""
 	session['href']=[]
 	form=fetchUrl(request.form)
-	
-	# if router['loggedin']=='':
-	# 	return redirect(url_for('login'))
 	if request.method=="POST" and form.validate():
 		url=form.query.data
 		session['url']=url
@@ -87,11 +78,7 @@ def addtowishlist():
 				session['href'].append(i.get('src'))
 
 		if len(session['href'])==0:
-			found="No suitable Wish item could be found on this page!"
-		
-
-	# if request.method=="POST":
-	# 	return redirect(url_for('wishlist'))
+			found="No Wish item found!"
 
 	return render_template('addtowishlist.html',user=session['user'],form=form,thumbs=session['href'],found=found,test=session['href'])
 
